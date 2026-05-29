@@ -50,6 +50,10 @@
     <div class="ponte-loading">caricamento…</div>
   </div>
 
+  <!-- React runtime: bundle.js was built with react/react-dom as external globals,
+       so they must load first. Vendored locally to preserve full offline support. -->
+  <script src="react.production.min.js"></script>
+  <script src="react-dom.production.min.js"></script>
   <script src="bundle.js"></script>
 
   <script>

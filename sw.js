@@ -1,8 +1,10 @@
 // Ponte service worker — cache-first for true offline support
-const CACHE = 'ponte-v1';
+const CACHE = 'ponte-v2';
 const ASSETS = [
   './',
   './index.html',
+  './react.production.min.js',
+  './react-dom.production.min.js',
   './bundle.js',
   './manifest.json',
   './icon-192.png',
