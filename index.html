@@ -50,19 +50,26 @@
     <div class="ponte-loading">caricamento…</div>
   </div>
 
-  <!-- React runtime: bundle.js was built with react/react-dom as external globals,
-       so they must load first. Vendored locally to preserve full offline support. -->
+  <!-- React runtime: bundle.js was built with react as an external global, so it
+       must load first. react-dom is already inside bundle.js. Vendored locally to
+       preserve full offline support. -->
   <script src="react.production.min.js"></script>
-  <script src="react-dom.production.min.js"></script>
   <script src="bundle.js"></script>
 
   <script>
-    // Register service worker for offline support
+    // Register service worker for offline support, and reload once when a new
+    // version takes over so deploys apply without a manual cache clear.
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('sw.js').catch(function(err) {
           console.log('Service worker registration failed:', err);
         });
+      });
+      var refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
       });
     }
   </script>

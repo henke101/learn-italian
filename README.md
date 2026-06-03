@@ -1,57 +1,46 @@
-# Ponte — deployment
+# Ponte — Spagnolo → Italiano
 
-Statisk PWA, bygger på React (förbundlad i `bundle.js`). Inga build-steg behövs för att deploya — alla filer är klara.
+A small offline-first PWA for learning Italian from Spanish: ~515 phrase pairs in a
+React app, installable to the iPhone home screen and fully usable without a connection.
 
-## Filer i den här mappen
+**Live:** https://henke101.github.io/learn-italian/
 
-| Fil | Vad |
+## Files
+
+| File | What |
 |---|---|
-| `index.html` | Entrypoint |
-| `bundle.js` | Hela appen (React + UI + 515 fraspar), ~208 KB minifierad |
-| `sw.js` | Service worker — cachar allt vid första besöket för 100% offline |
-| `manifest.json` | PWA-manifest för "Add to Home Screen" |
-| `icon-192.png`, `icon-512.png` | App-ikoner |
-| `apple-touch-icon.png` | iOS-ikon för hemskärm |
+| `index.html` | Entry point. Loads React, then the app bundle, then registers the service worker. |
+| `bundle.js` | The whole app (UI + phrase data + react-dom), minified. |
+| `react.production.min.js` | React runtime (UMD 18.3.1). The bundle expects `React` as a global, so it loads first. `react-dom` is already inside `bundle.js`. |
+| `sw.js` | Service worker — network-first for the page, stale-while-revalidate for assets. Full offline after first load. |
+| `manifest.json` | PWA manifest for "Add to Home Screen". |
+| `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` | App icons. |
 
-## Deploya på GitHub Pages
+No build step — the files are ready to serve as-is.
 
-Från terminalen, ersätt `<USERNAME>` med ditt GitHub-användarnamn:
+## Install on iPhone (offline)
+
+iOS only grants offline/standalone behaviour to apps added from **Safari** (a Chrome
+"Add to Home Screen" is just a bookmark and needs a connection).
+
+1. Open the live URL in **Safari**.
+2. Let it load once — this caches everything for offline use.
+3. Share button → **Add to Home Screen** → name it → **Add**.
+4. Open the icon once while online so caching finishes, then it works in Airplane Mode.
+
+Note: the click-to-hear pronunciation (TTS) needs internet on some iOS versions; the
+rest of the app is fully offline.
+
+## Deploy / update
+
+Hosted on GitHub Pages from `main` (root). To update:
 
 ```bash
-# 1. Skapa repot på github.com först (publikt, t.ex. "ponte-italiano")
-#    Inget README, ingen .gitignore — tomt.
-
-# 2. I den här mappen:
-git init
-git add .
-git commit -m "Initial Ponte deploy"
-git branch -M main
-git remote add origin https://github.com/<USERNAME>/ponte-italiano.git
-git push -u origin main
-
-# 3. På github.com → ditt repo → Settings → Pages:
-#    - Source: "Deploy from a branch"
-#    - Branch: main / (root)
-#    - Save
-
-# 4. Vänta ~1 minut. URL:en blir:
-#    https://<USERNAME>.github.io/ponte-italiano/
+git add -A
+git commit -m "…"
+git push
 ```
 
-## Använd på iPhone
-
-1. Öppna URL:en i **Safari** (måste vara Safari på iOS för PWA-funktioner)
-2. Tryck Share-ikonen (rutan med uppåtpilen)
-3. Scrolla → "Add to Home Screen" / "Lägg till på hemskärmen"
-4. Klart — ikonen ligger på hemskärmen, öppnar fullskärm utan webbläsare-chrome
-5. Efter första öppningen är allt cachat. Funkar offline.
-
-## Offline-test
-
-Efter installation: aktivera flygplansläge → öppna ikonen → den ska fungera normalt. Service workern serverar allt från cache.
-
-Notera: webbläsarens TTS-uttal (klick-för-att-höra) kräver internet på vissa iOS-versioner. Resten av appen är 100% offline.
-
-## Uppdatera senare
-
-Ändra filerna, `git add . && git commit -m "..." && git push`. GitHub Pages bygger om automatiskt på ~1 minut. När du öppnar appen nästa gång tar service workern in den nya versionen vid omladdning (kan kräva en hård reload).
+Pages rebuilds in ~1 minute. The service worker is network-first for the page, so a
+new version shows up on the next load when online; bump `CACHE` in `sw.js` when assets
+change to force a clean refresh of cached files.

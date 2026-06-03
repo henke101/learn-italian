@@ -1,10 +1,12 @@
-// Ponte service worker — cache-first for true offline support
-const CACHE = 'ponte-v2';
+// Ponte service worker
+// - Navigations: network-first (always get the latest HTML when online), fall back to cache offline.
+// - Static assets: stale-while-revalidate (instant from cache, refreshed in the background).
+// This keeps the app fully offline while making updates appear on the next load.
+const CACHE = 'ponte-v3';
 const ASSETS = [
   './',
   './index.html',
   './react.production.min.js',
-  './react-dom.production.min.js',
   './bundle.js',
   './manifest.json',
   './icon-192.png',
@@ -12,7 +14,7 @@ const ASSETS = [
   './apple-touch-icon.png'
 ];
 
-// Install: cache all core assets
+// Install: pre-cache core assets, activate immediately
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE)
@@ -21,7 +23,7 @@ self.addEventListener('install', function(event) {
   );
 });
 
-// Activate: clean old caches
+// Activate: drop old caches, take control of open clients
 self.addEventListener('activate', function(event) {
   event.waitUntil(
     caches.keys().then(function(keys) {
@@ -33,30 +35,37 @@ self.addEventListener('activate', function(event) {
   );
 });
 
-// Fetch: cache-first, fall back to network
 self.addEventListener('fetch', function(event) {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') return;
+  var req = event.request;
+  if (req.method !== 'GET') return;
 
-  event.respondWith(
-    caches.match(event.request).then(function(cached) {
-      if (cached) return cached;
-
-      return fetch(event.request).then(function(response) {
-        // Cache successful responses for next time
-        if (response && response.status === 200 && response.type === 'basic') {
-          var clone = response.clone();
-          caches.open(CACHE).then(function(cache) {
-            cache.put(event.request, clone);
-          });
-        }
+  // Navigations: network-first so a deploy shows up immediately when online.
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req).then(function(response) {
+        var clone = response.clone();
+        caches.open(CACHE).then(function(cache) { cache.put('./index.html', clone); });
         return response;
       }).catch(function() {
-        // Offline and not in cache — return a basic fallback for navigations
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
+        return caches.match('./index.html').then(function(c) {
+          return c || caches.match('./');
+        });
+      })
+    );
+    return;
+  }
+
+  // Static assets: stale-while-revalidate.
+  event.respondWith(
+    caches.match(req).then(function(cached) {
+      var network = fetch(req).then(function(response) {
+        if (response && response.status === 200 && response.type === 'basic') {
+          var clone = response.clone();
+          caches.open(CACHE).then(function(cache) { cache.put(req, clone); });
         }
-      });
+        return response;
+      }).catch(function() { return cached; });
+      return cached || network;
     })
   );
 });
