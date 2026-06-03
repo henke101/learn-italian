@@ -5,8 +5,7 @@ App name: "Ponte — Spagnolo → Italiano".
 
 ## Deploy
 
-- **GitHub**: `github.com/henke101/learn-italian` (public), account **henke101** (same
-  personal account as mbarete-gainz). NOT the aguara.lan/Gitea pipeline, NOT `fox-arg`.
+- **GitHub**: `github.com/henke101/learn-italian` (public).
 - **Hosting**: GitHub Pages from `main` / root. Push to `main` = deploy; Pages rebuilds in ~1 min.
 - **Live**: https://henke101.github.io/learn-italian/
 - No build step — files are served as-is.
